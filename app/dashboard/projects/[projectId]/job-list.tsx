@@ -34,14 +34,14 @@ export default function JobList({ projectId }: Props) {
           <p>thickness: {job.thickness.thicknessMm} mm</p>
           <p>Cut Length (mm): {job.cutLengthMm}</p>
           <p>Holes Count: {job.holesCount}</p>
-          <p>Setup Min: {job.setupMin}</p>
-          <p>Post Min: {job.postMin}</p>
+          <p>Setup Minutes: {job.setupMin}</p>
+          <p>Post processing Minutes: {job.postMin}</p>
           <p>Engrave Length (mm): {job.engraveLengthMm}</p>
           <p>Qty: {job.qty}</p>
           <p>Override Machine Eur Min: {job.overrideMachineEurMin}</p>
           <p>Margin Pct: {job.marginPct}</p>
-          <p>Result Price Per Unit: {job.resultPricePerUnit}</p>
-          <p>Result Total: {job.resultTotal}</p>
+          <p>Result Price Per Unit: {job.resultPricePerUnit} Euro</p>
+          <p>Result Total: {job.resultTotal} Euro</p>
           <p>Customer Name: {job.customerName}</p>
           <p>Notes: {job.notes}</p>
         </CardContent>

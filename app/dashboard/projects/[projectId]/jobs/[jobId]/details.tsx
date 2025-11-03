@@ -26,14 +26,14 @@ export default function Details({ projectId, jobId }: Props) {
       <p>thickness: {data.data.thickness.thicknessMm} mm</p>
       <p>Cut Length (mm): {data.data.cutLengthMm}</p>
       <p>Holes Count: {data.data.holesCount}</p>
-      <p>Setup Min: {data.data.setupMin}</p>
-      <p>Post Min: {data.data.postMin}</p>
+      <p>Setup Minutes: {data.data.setupMin}</p>
+      <p>Post processing Minutes: {data.data.postMin}</p>
       <p>Engrave Length (mm): {data.data.engraveLengthMm}</p>
       <p>Qty: {data.data.qty}</p>
       <p>Override Machine Eur Min: {data.data.overrideMachineEurMin}</p>
       <p>Margin Pct: {data.data.marginPct}</p>
-      <p>Result Price Per Unit: {data.data.resultPricePerUnit}</p>
-      <p>Result Total: {data.data.resultTotal}</p>
+      <p>Result Price Per Unit: {data.data.resultPricePerUnit} Euro</p>
+      <p>Result Total: {data.data.resultTotal} Euro</p>
       <p>Customer Name: {data.data.customerName}</p>
       <p>Notes: {data.data.notes}</p>
     </div>
