@@ -1,9 +1,9 @@
 import { Hono } from "hono";
-import { AuthMiddlewareVariables } from "@api/(middlewares)/auth";
+import { AuthenticationMiddlewareVariables } from "@api/(middlewares)/auth";
 import { getMyCompleteProfile } from "./services";
 
 const usersRoutes = new Hono<{
-  Variables: AuthMiddlewareVariables;
+  Variables: AuthenticationMiddlewareVariables;
 }>().get("/me", async (c) => {
   const authUser = c.get("user");
 

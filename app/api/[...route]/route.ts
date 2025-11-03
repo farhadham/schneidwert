@@ -4,6 +4,7 @@ import { customOnError } from "@api/(middlewares)/error-handler";
 import { authenticationMiddleware } from "@api/(middlewares)/auth";
 import usersRoutes from "../(routes)/users";
 import projectsRoutes from "../(routes)/projects";
+import materialsRoutes from "../(routes)/materials";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,7 +16,8 @@ app.use(authenticationMiddleware);
 
 const routes = app
   .route("/users", usersRoutes)
-  .route("/projects", projectsRoutes);
+  .route("/projects", projectsRoutes)
+  .route("/materials", materialsRoutes);
 
 app.onError(customOnError);
 

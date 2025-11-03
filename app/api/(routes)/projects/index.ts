@@ -33,10 +33,7 @@ const projectsRoutes = new Hono<{
   })
 
   .post("/", zValidator("json", POSTProjectsJsonSchema), async (c) => {
-    await createProject(
-      "11111111-1111-1111-1111-111111111111",
-      c.req.valid("json"),
-    ); //TODO orgId should come from the user
+    await createProject(c.get("user").id, c.req.valid("json"));
 
     return c.json(
       {
@@ -56,6 +53,10 @@ const projectsRoutes = new Hono<{
         throw new ApiError({ message: "Project is not found", status: 404 });
       }
 
+      if (project.createdBy !== c.get("user").id) {
+        throw new ApiError({ message: "Forbidden", status: 403 });
+      }
+
       return c.json(
         {
           success: true,
@@ -71,11 +72,17 @@ const projectsRoutes = new Hono<{
     zValidator("param", GETProjectsProjectIdParamSchema),
     zValidator("json", POSTProjectsProjectIdJobsJsonSchema),
     async (c) => {
-      await createJob(
-        c.get("user").id,
-        c.req.valid("param"),
-        c.req.valid("json"),
-      );
+      const project = await getProjectDetail(c.req.valid("param"));
+
+      if (!project) {
+        throw new ApiError({ message: "Project is not found", status: 404 });
+      }
+
+      if (project.createdBy !== c.get("user").id) {
+        throw new ApiError({ message: "Forbidden", status: 403 });
+      }
+
+      await createJob(c.req.valid("param"), c.req.valid("json"));
 
       return c.json(
         {
@@ -94,6 +101,10 @@ const projectsRoutes = new Hono<{
 
       if (!job) {
         throw new ApiError({ message: "job is not found", status: 404 });
+      }
+
+      if (job.project.createdBy !== c.get("user").id) {
+        throw new ApiError({ message: "Forbidden", status: 403 });
       }
 
       return c.json(

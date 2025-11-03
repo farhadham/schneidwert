@@ -17,7 +17,16 @@ export const POSTProjectsProjectIdJobsParamSchema = AllParamSchema.pick({
   projectId: true,
 });
 export const POSTProjectsProjectIdJobsJsonSchema = z.object({
+  materialThicknessId: z.uuid(),
   title: z.string().min(3).max(100),
+  cutLengthMm: z.number(), // Total cutting length in mm
+  holesCount: z.number(), // Number of holes/drillings
+  setupMin: z.number(), // Setup time in minutes
+  postMin: z.number(), // Post-processing time in minutes
+  engraveLengthMm: z.number(), // Engraving length in mm
+  qty: z.number(), // Quantity of parts,
+  customerName: z.string().max(100).optional(),
+  notes: z.string().max(1000).optional(),
 });
 export type POSTProjectsProjectIdJobsParamType = z.infer<
   typeof POSTProjectsProjectIdJobsParamSchema

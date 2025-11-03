@@ -14,45 +14,52 @@ CREATE TABLE "account" (
 	"updated_at" timestamp (0) with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "billing" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"org_id" uuid NOT NULL,
-	"stripe_customer_id" varchar NOT NULL,
-	"stripe_subscription_id" varchar NOT NULL,
-	"plan" varchar DEFAULT 'starter' NOT NULL,
-	"updated_at" timestamp (0) with time zone DEFAULT now() NOT NULL,
-	"created_at" timestamp (0) with time zone DEFAULT now() NOT NULL
-);
---> statement-breakpoint
 CREATE TABLE "job" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"project_id" uuid NOT NULL,
 	"title" text NOT NULL,
-	"input" jsonb NOT NULL,
-	"result" jsonb NOT NULL,
-	"calc_version" varchar NOT NULL,
-	"created_by" uuid NOT NULL,
-	"created_at" timestamp (0) with time zone DEFAULT now() NOT NULL
-);
---> statement-breakpoint
-CREATE TABLE "org_member" (
-	"org_id" uuid NOT NULL,
-	"user_id" uuid NOT NULL,
-	"role" varchar DEFAULT 'member' NOT NULL,
+	"material_id" uuid NOT NULL,
+	"thickness_id" uuid NOT NULL,
+	"cut_length_mm" numeric(12, 2) NOT NULL,
+	"holes_count" integer DEFAULT 0 NOT NULL,
+	"setup_min" numeric(10, 2) DEFAULT '0',
+	"post_min" numeric(10, 2) DEFAULT '0',
+	"engrave_length_mm" numeric(10, 2) DEFAULT '0',
+	"qty" integer DEFAULT 1 NOT NULL,
+	"override_machine_eur_min" numeric(10, 2),
+	"margin_pct" numeric(5, 2) DEFAULT '0',
+	"result_price_per_unit" numeric(10, 2),
+	"result_total" numeric(10, 2),
+	"customer_name" text,
+	"notes" text,
 	"created_at" timestamp (0) with time zone DEFAULT now() NOT NULL,
-	CONSTRAINT "org_member_org_id_user_id_pk" PRIMARY KEY("org_id","user_id")
+	"updated_at" timestamp (0) with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "org" (
+CREATE TABLE "material" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"name" text NOT NULL,
-	"created_by" uuid NOT NULL,
-	"created_at" timestamp (0) with time zone DEFAULT now() NOT NULL
+	"code" text NOT NULL,
+	"active" boolean DEFAULT true NOT NULL,
+	"created_at" timestamp (0) with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp (0) with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "material_thickness" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"material_id" uuid NOT NULL,
+	"thickness_mm" numeric(10, 2) NOT NULL,
+	"cut_cost_per_m" numeric(10, 2) NOT NULL,
+	"drill_secs_per_hole" numeric(10, 2) NOT NULL,
+	"engrave_cost_per_m" numeric(10, 2),
+	"notes" text,
+	"created_at" timestamp (0) with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp (0) with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "project" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"org_id" uuid NOT NULL,
+	"created_by" uuid NOT NULL,
 	"name" text NOT NULL,
 	"created_at" timestamp (0) with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "project_name_unique" UNIQUE("name")
@@ -91,11 +98,9 @@ CREATE TABLE "verification" (
 );
 --> statement-breakpoint
 ALTER TABLE "account" ADD CONSTRAINT "account_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "billing" ADD CONSTRAINT "billing_org_id_org_id_fk" FOREIGN KEY ("org_id") REFERENCES "public"."org"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "job" ADD CONSTRAINT "job_project_id_project_id_fk" FOREIGN KEY ("project_id") REFERENCES "public"."project"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "job" ADD CONSTRAINT "job_created_by_user_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "org_member" ADD CONSTRAINT "org_member_org_id_org_id_fk" FOREIGN KEY ("org_id") REFERENCES "public"."org"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "org_member" ADD CONSTRAINT "org_member_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "org" ADD CONSTRAINT "org_created_by_user_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "project" ADD CONSTRAINT "project_org_id_org_id_fk" FOREIGN KEY ("org_id") REFERENCES "public"."org"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "job" ADD CONSTRAINT "job_material_id_material_id_fk" FOREIGN KEY ("material_id") REFERENCES "public"."material"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "job" ADD CONSTRAINT "job_thickness_id_material_thickness_id_fk" FOREIGN KEY ("thickness_id") REFERENCES "public"."material_thickness"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "material_thickness" ADD CONSTRAINT "material_thickness_material_id_material_id_fk" FOREIGN KEY ("material_id") REFERENCES "public"."material"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "project" ADD CONSTRAINT "project_created_by_user_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "session" ADD CONSTRAINT "session_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;

@@ -1,5 +1,5 @@
 {
-  "id": "24ea1c37-c5d6-4c59-ac5c-f4fbf08f5ad9",
+  "id": "a3f6dc5c-e113-4333-82cd-9073aeabbcd7",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -112,79 +112,6 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.billing": {
-      "name": "billing",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "org_id": {
-          "name": "org_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "stripe_customer_id": {
-          "name": "stripe_customer_id",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "stripe_subscription_id": {
-          "name": "stripe_subscription_id",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "plan": {
-          "name": "plan",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'starter'"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp (0) with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp (0) with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "billing_org_id_org_id_fk": {
-          "name": "billing_org_id_org_id_fk",
-          "tableFrom": "billing",
-          "tableTo": "org",
-          "columnsFrom": [
-            "org_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
     "public.job": {
       "name": "job",
       "schema": "",
@@ -208,32 +135,105 @@
           "primaryKey": false,
           "notNull": true
         },
-        "input": {
-          "name": "input",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "result": {
-          "name": "result",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "calc_version": {
-          "name": "calc_version",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created_by": {
-          "name": "created_by",
+        "material_id": {
+          "name": "material_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
+        "thickness_id": {
+          "name": "thickness_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cut_length_mm": {
+          "name": "cut_length_mm",
+          "type": "numeric(12, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "holes_count": {
+          "name": "holes_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "setup_min": {
+          "name": "setup_min",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "post_min": {
+          "name": "post_min",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "engrave_length_mm": {
+          "name": "engrave_length_mm",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "qty": {
+          "name": "qty",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        },
+        "override_machine_eur_min": {
+          "name": "override_machine_eur_min",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "margin_pct": {
+          "name": "margin_pct",
+          "type": "numeric(5, 2)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "result_price_per_unit": {
+          "name": "result_price_per_unit",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "result_total": {
+          "name": "result_total",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "customer_name": {
+          "name": "customer_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_at": {
           "name": "created_at",
+          "type": "timestamp (0) with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
           "type": "timestamp (0) with time zone",
           "primaryKey": false,
           "notNull": true,
@@ -255,17 +255,30 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "job_created_by_user_id_fk": {
-          "name": "job_created_by_user_id_fk",
+        "job_material_id_material_id_fk": {
+          "name": "job_material_id_material_id_fk",
           "tableFrom": "job",
-          "tableTo": "user",
+          "tableTo": "material",
           "columnsFrom": [
-            "created_by"
+            "material_id"
           ],
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "job_thickness_id_material_thickness_id_fk": {
+          "name": "job_thickness_id_material_thickness_id_fk",
+          "tableFrom": "job",
+          "tableTo": "material_thickness",
+          "columnsFrom": [
+            "thickness_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
           "onUpdate": "no action"
         }
       },
@@ -275,82 +288,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.org_member": {
-      "name": "org_member",
-      "schema": "",
-      "columns": {
-        "org_id": {
-          "name": "org_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "role": {
-          "name": "role",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'member'"
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp (0) with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "org_member_org_id_org_id_fk": {
-          "name": "org_member_org_id_org_id_fk",
-          "tableFrom": "org_member",
-          "tableTo": "org",
-          "columnsFrom": [
-            "org_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "org_member_user_id_user_id_fk": {
-          "name": "org_member_user_id_user_id_fk",
-          "tableFrom": "org_member",
-          "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {
-        "org_member_org_id_user_id_pk": {
-          "name": "org_member_org_id_user_id_pk",
-          "columns": [
-            "org_id",
-            "user_id"
-          ]
-        }
-      },
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.org": {
-      "name": "org",
+    "public.material": {
+      "name": "material",
       "schema": "",
       "columns": {
         "id": {
@@ -366,14 +305,98 @@
           "primaryKey": false,
           "notNull": true
         },
-        "created_by": {
-          "name": "created_by",
+        "code": {
+          "name": "code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp (0) with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp (0) with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.material_thickness": {
+      "name": "material_thickness",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "material_id": {
+          "name": "material_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
+        "thickness_mm": {
+          "name": "thickness_mm",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cut_cost_per_m": {
+          "name": "cut_cost_per_m",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "drill_secs_per_hole": {
+          "name": "drill_secs_per_hole",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "engrave_cost_per_m": {
+          "name": "engrave_cost_per_m",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_at": {
           "name": "created_at",
+          "type": "timestamp (0) with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
           "type": "timestamp (0) with time zone",
           "primaryKey": false,
           "notNull": true,
@@ -382,12 +405,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "org_created_by_user_id_fk": {
-          "name": "org_created_by_user_id_fk",
-          "tableFrom": "org",
-          "tableTo": "user",
+        "material_thickness_material_id_material_id_fk": {
+          "name": "material_thickness_material_id_material_id_fk",
+          "tableFrom": "material_thickness",
+          "tableTo": "material",
           "columnsFrom": [
-            "created_by"
+            "material_id"
           ],
           "columnsTo": [
             "id"
@@ -413,8 +436,8 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "org_id": {
-          "name": "org_id",
+        "created_by": {
+          "name": "created_by",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
@@ -435,12 +458,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "project_org_id_org_id_fk": {
-          "name": "project_org_id_org_id_fk",
+        "project_created_by_user_id_fk": {
+          "name": "project_created_by_user_id_fk",
           "tableFrom": "project",
-          "tableTo": "org",
+          "tableTo": "user",
           "columnsFrom": [
-            "org_id"
+            "created_by"
           ],
           "columnsTo": [
             "id"

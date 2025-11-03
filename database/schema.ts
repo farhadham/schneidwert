@@ -2,7 +2,9 @@ import { billingPlan, organizationMemberRole } from "@/data/constants";
 import { or, relations } from "drizzle-orm";
 import {
   boolean,
+  integer,
   jsonb,
+  numeric,
   pgTable,
   primaryKey,
   text,
@@ -119,47 +121,11 @@ export const verificationTable = pgTable("verification", {
     .defaultNow(),
 });
 
-export const orgTable = pgTable("org", {
+export const projectTable = pgTable("project", {
   id: uuid("id").primaryKey().defaultRandom(),
-  name: text("name").notNull(),
   createdBy: uuid("created_by")
     .notNull()
     .references(() => userTable.id, { onDelete: "cascade" }),
-  createdAt: timestamp("created_at", {
-    withTimezone: true,
-    precision: 0,
-  })
-    .notNull()
-    .defaultNow(),
-});
-
-export const orgMemberTable = pgTable(
-  "org_member",
-  {
-    orgId: uuid("org_id")
-      .notNull()
-      .references(() => orgTable.id, { onDelete: "cascade" }),
-    userId: uuid("user_id")
-      .notNull()
-      .references(() => userTable.id, { onDelete: "cascade" }),
-    role: varchar("role", { enum: organizationMemberRole })
-      .notNull()
-      .default("member"),
-    createdAt: timestamp("created_at", {
-      withTimezone: true,
-      precision: 0,
-    })
-      .notNull()
-      .defaultNow(),
-  },
-  (table) => [primaryKey({ columns: [table.orgId, table.userId] })],
-);
-
-export const projectTable = pgTable("project", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  orgId: uuid("org_id")
-    .notNull()
-    .references(() => orgTable.id, { onDelete: "cascade" }),
   name: text("name").notNull().unique(),
   createdAt: timestamp("created_at", {
     withTimezone: true,
@@ -175,13 +141,52 @@ export const jobTable = pgTable("job", {
     .notNull()
     .references(() => projectTable.id, { onDelete: "cascade" }),
   title: text("title").notNull(),
-  input: jsonb("input").notNull(),
-  result: jsonb("result").notNull(),
-  calcVersion: varchar("calc_version").notNull(),
-  createdBy: uuid("created_by")
+  // Material selection
+  materialId: uuid("material_id")
     .notNull()
-    .references(() => userTable.id, { onDelete: "cascade" }),
+    .references(() => materialTable.id),
+  thicknessId: uuid("thickness_id")
+    .notNull()
+    .references(() => materialThicknessTable.id),
+
+  // Input parameters
+  cutLengthMm: numeric("cut_length_mm", { precision: 12, scale: 2 }).notNull(), // Total cutting length in mm
+  holesCount: integer("holes_count").notNull().default(0), // Number of holes/drillings
+
+  // Optional time inputs
+  setupMin: numeric("setup_min", { precision: 10, scale: 2 }).default("0"), // Setup/rigging time
+  postMin: numeric("post_min", { precision: 10, scale: 2 }).default("0"), // Post-processing (deburring, washing)
+  engraveLengthMm: numeric("engrave_length_mm", {
+    precision: 10,
+    scale: 2,
+  }).default("0"), // Engraving length
+
+  qty: integer("qty").notNull().default(1), // Quantity of parts
+
+  // Pricing overrides
+  overrideMachineEurMin: numeric("override_machine_eur_min", {
+    precision: 10,
+    scale: 2,
+  }), // Override machine cost for this job
+  marginPct: numeric("margin_pct", { precision: 5, scale: 2 }).default("0"), // Margin/markup percentage
+
+  // Calculated results (stored for history/reference)
+  resultPricePerUnit: numeric("result_price_per_unit", {
+    precision: 10,
+    scale: 2,
+  }),
+  resultTotal: numeric("result_total", { precision: 10, scale: 2 }),
+
+  // Job metadata
+  customerName: text("customer_name"), // Optional customer reference
+  notes: text("notes"),
   createdAt: timestamp("created_at", {
+    withTimezone: true,
+    precision: 0,
+  })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", {
     withTimezone: true,
     precision: 0,
   })
@@ -189,21 +194,48 @@ export const jobTable = pgTable("job", {
     .defaultNow(),
 });
 
-export const billingTable = pgTable("billing", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  orgId: uuid("org_id")
+export const materialTable = pgTable("material", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull(), // e.g., "Stahl S235", "Edelstahl 1.4301"
+  code: text("code").notNull(), // e.g., "S235", "1.4301"
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+    precision: 0,
+  })
     .notNull()
-    .references(() => orgTable.id, { onDelete: "cascade" }),
-  stripeCustomerId: varchar("stripe_customer_id").notNull(),
-  stripeSubscriptionId: varchar("stripe_subscription_id").notNull(),
-  plan: varchar("plan", { enum: billingPlan }).notNull().default("starter"),
+    .defaultNow(),
   updatedAt: timestamp("updated_at", {
     withTimezone: true,
     precision: 0,
   })
     .notNull()
     .defaultNow(),
+});
+
+export const materialThicknessTable = pgTable("material_thickness", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  materialId: uuid("material_id")
+    .notNull()
+    .references(() => materialTable.id, { onDelete: "cascade" }),
+  thicknessMm: numeric("thickness_mm", { precision: 10, scale: 2 }).notNull(), // e.g., 2.00, 3.00, 4.00
+
+  // Cost parameters per thickness
+  cutCostPerM: numeric("cut_cost_per_m", { precision: 10, scale: 2 }).notNull(), // €/meter of cutting
+  drillSecsPerHole: numeric("drill_secs_per_hole", {
+    precision: 10,
+    scale: 2,
+  }).notNull(), // seconds per drilling/hole
+  engraveCostPerM: numeric("engrave_cost_per_m", { precision: 10, scale: 2 }), // optional: €/meter for engraving
+
+  notes: text("notes"),
   createdAt: timestamp("created_at", {
+    withTimezone: true,
+    precision: 0,
+  })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", {
     withTimezone: true,
     precision: 0,
   })
@@ -214,41 +246,15 @@ export const billingTable = pgTable("billing", {
 // Relations
 
 export const userRelations = relations(userTable, ({ one, many }) => ({
-  orgMembership: one(orgMemberTable),
-  orgCreated: one(orgTable, {
-    fields: [userTable.id],
-    references: [orgTable.createdBy],
-  }),
-  jobsCreated: many(jobTable),
-}));
-
-export const orgRelations = relations(orgTable, ({ many, one }) => ({
-  members: many(orgMemberTable),
-  createdByUser: one(userTable, {
-    fields: [orgTable.createdBy],
-    references: [userTable.id],
-  }),
-  projects: many(projectTable),
-  billings: many(billingTable),
-}));
-
-export const orgMemberRelations = relations(orgMemberTable, ({ one }) => ({
-  user: one(userTable, {
-    fields: [orgMemberTable.userId],
-    references: [userTable.id],
-  }), // orgMember belongs to 1 user only and can be null
-  org: one(orgTable, {
-    fields: [orgMemberTable.orgId],
-    references: [orgTable.id],
-  }),
+  projectsCreated: many(projectTable),
 }));
 
 export const projectRelations = relations(projectTable, ({ one, many }) => ({
-  org: one(orgTable, {
-    fields: [projectTable.orgId],
-    references: [orgTable.id],
-  }),
   jobs: many(jobTable),
+  createdByUser: one(userTable, {
+    fields: [projectTable.createdBy],
+    references: [userTable.id],
+  }),
 }));
 
 export const jobRelations = relations(jobTable, ({ one }) => ({
@@ -256,15 +262,28 @@ export const jobRelations = relations(jobTable, ({ one }) => ({
     fields: [jobTable.projectId],
     references: [projectTable.id],
   }),
-  createdByUser: one(userTable, {
-    fields: [jobTable.createdBy],
-    references: [userTable.id],
+  material: one(materialTable, {
+    fields: [jobTable.materialId],
+    references: [materialTable.id],
+  }),
+  thickness: one(materialThicknessTable, {
+    fields: [jobTable.thicknessId],
+    references: [materialThicknessTable.id],
   }),
 }));
 
-export const billingRelations = relations(billingTable, ({ one }) => ({
-  org: one(orgTable, {
-    fields: [billingTable.orgId],
-    references: [orgTable.id],
-  }),
+export const materialsRelations = relations(materialTable, ({ many }) => ({
+  thicknesses: many(materialThicknessTable),
+  jobs: many(jobTable),
 }));
+
+export const materialThicknessesRelations = relations(
+  materialThicknessTable,
+  ({ one, many }) => ({
+    material: one(materialTable, {
+      fields: [materialThicknessTable.materialId],
+      references: [materialTable.id],
+    }),
+    jobs: many(jobTable),
+  }),
+);

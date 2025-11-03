@@ -6,22 +6,27 @@ import {
   POSTProjectsProjectIdJobsJsonType,
   POSTProjectsProjectIdJobsParamType,
 } from "./validators";
-import { jobTable, projectTable } from "@/database/schema";
+import {
+  jobTable,
+  materialThicknessTable,
+  projectTable,
+} from "@/database/schema";
 import { eq } from "drizzle-orm";
+import { GLOBAL_DEFAULTS } from "../../(data)/constants";
+import { calculateJobPrice } from "./utils";
+import { ApiError } from "../../(lib)/api-error";
 
-// TODO org specific
 export const getAllProjects = async () => {
   return db.query.projectTable.findMany();
 };
 
-//TODO orgId should come from the user
 export const createProject = async (
-  orgId: string,
+  userId: string,
   payload: POSTProjectsJsonType,
 ) => {
   return db.insert(projectTable).values({
-    orgId,
     ...payload,
+    createdBy: userId,
   });
 };
 
@@ -37,17 +42,94 @@ export const getProjectDetail = async (
 };
 
 export const createJob = async (
-  userId: string,
   params: POSTProjectsProjectIdJobsParamType,
   payload: POSTProjectsProjectIdJobsJsonType,
 ) => {
+  const {
+    cutLengthMm,
+    engraveLengthMm,
+    holesCount,
+    postMin,
+    qty,
+    setupMin,
+    title,
+    materialThicknessId,
+    customerName,
+    notes,
+  } = payload;
+
+  // get cutCostPerM, drillSecsPerHole from material and it's thickness
+  const materialThickness = await db.query.materialThicknessTable.findFirst({
+    where: eq(materialThicknessTable.id, materialThicknessId),
+    with: {
+      material: true,
+    },
+  });
+
+  if (!materialThickness) {
+    throw new ApiError({
+      message: "Material thickness not found",
+      status: 400,
+    });
+  }
+
+  const cutCostPerM = parseFloat(materialThickness.cutCostPerM);
+  const drillSecsPerHole = parseFloat(materialThickness.drillSecsPerHole);
+  const engraveCostPerM = materialThickness.engraveCostPerM
+    ? parseFloat(materialThickness.engraveCostPerM)
+    : undefined;
+
+  const {
+    afterMinPrice,
+    afterRounding,
+    beforeRounding,
+    cuttingCost,
+    cuttingTimeMin,
+    drillingCost,
+    drillingTimeMin,
+    engravingCost,
+    finalPrice,
+    marginAmount,
+    postProcessingCost,
+    pricePerUnit,
+    setupCost,
+    subtotalPerUnit,
+    subtotalTotal,
+    totalMachineTimeMin,
+    totalPrice,
+  } = calculateJobPrice({
+    machineEurMin: GLOBAL_DEFAULTS.machineEurMin,
+    marginPct: GLOBAL_DEFAULTS.defaultMarginPct,
+    minPriceEur: GLOBAL_DEFAULTS.minPriceEur,
+    roundingStepEur: GLOBAL_DEFAULTS.roundingStepEur,
+    cutLengthMm,
+    engraveLengthMm,
+    holesCount,
+    postMin,
+    qty,
+    setupMin,
+    cutCostPerM,
+    drillSecsPerHole,
+    engraveCostPerM,
+  });
+
   return db.insert(jobTable).values({
-    title: payload.title,
-    calcVersion: "1",
+    title,
+    cutLengthMm: String(cutLengthMm),
+    engraveLengthMm: String(engraveLengthMm),
+    holesCount: holesCount,
+    resultTotal: String(finalPrice),
+    materialId: materialThickness.materialId,
     projectId: params.projectId,
-    createdBy: userId,
-    input: {},
-    result: {},
+    thicknessId: materialThickness.id,
+    customerName,
+    marginPct: String(GLOBAL_DEFAULTS.defaultMarginPct),
+    notes,
+    overrideMachineEurMin: String(GLOBAL_DEFAULTS.machineEurMin),
+    postMin: String(postMin),
+    qty: qty,
+    setupMin: String(setupMin),
+    resultPricePerUnit: String(pricePerUnit),
   });
 };
 
@@ -56,5 +138,8 @@ export const getJobDetail = async (
 ) => {
   return db.query.jobTable.findFirst({
     where: eq(jobTable.id, params.jobId),
+    with: {
+      project: true,
+    },
   });
 };
