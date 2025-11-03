@@ -27,11 +27,23 @@ export default function JobList({ projectId }: Props) {
       <Card>
         <CardHeader>
           <CardTitle>{job.title}</CardTitle>
-          <CardDescription>created by: {job.createdBy}</CardDescription>
+          <CardDescription>Customer: {job.customerName}</CardDescription>
         </CardHeader>
-        <CardContent>
-          <p>input: {JSON.stringify(job.input)}</p>
-          <p>result: {JSON.stringify(job.result)}</p>
+        <CardContent className="space-y-2">
+          <p>material: {job.material.name}</p>
+          <p>thickness: {job.thickness.thicknessMm} mm</p>
+          <p>Cut Length (mm): {job.cutLengthMm}</p>
+          <p>Holes Count: {job.holesCount}</p>
+          <p>Setup Min: {job.setupMin}</p>
+          <p>Post Min: {job.postMin}</p>
+          <p>Engrave Length (mm): {job.engraveLengthMm}</p>
+          <p>Qty: {job.qty}</p>
+          <p>Override Machine Eur Min: {job.overrideMachineEurMin}</p>
+          <p>Margin Pct: {job.marginPct}</p>
+          <p>Result Price Per Unit: {job.resultPricePerUnit}</p>
+          <p>Result Total: {job.resultTotal}</p>
+          <p>Customer Name: {job.customerName}</p>
+          <p>Notes: {job.notes}</p>
         </CardContent>
       </Card>
     </Link>

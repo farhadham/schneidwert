@@ -1,6 +1,5 @@
 "use client";
 
-import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import {
@@ -19,6 +18,8 @@ import { handleRpcResponse, mainApiClient } from "@/lib/api";
 import { InferRequestType } from "hono";
 import { projectQueryKeys } from "@/server/query-keys";
 import { useState } from "react";
+import MaterialSelect from "./material-select";
+import ThicknessSelect from "./thickness-select";
 
 type Props = { projectId: string; onClose: () => void };
 
@@ -40,12 +41,12 @@ export default function CreateJobForm({ projectId, onClose }: Props) {
     resolver: zodResolver(createJobFormSchema),
     defaultValues: {
       materialThicknessId: "",
-      cutLengthMm: 0,
-      holesCount: 0,
-      setupMin: 0,
-      postMin: 0,
-      engraveLengthMm: 0,
-      qty: 1,
+      cutLengthMm: "",
+      holesCount: "",
+      setupMin: "",
+      postMin: "",
+      engraveLengthMm: "",
+      qty: "",
       customerName: "",
       notes: "",
       title: "",
@@ -60,7 +61,7 @@ export default function CreateJobForm({ projectId, onClose }: Props) {
     <form
       id="form-job-creation"
       onSubmit={form.handleSubmit(onSubmit)}
-      className="grid gap-4 sm:grid-cols-2"
+      className="grid items-center justify-center gap-4 sm:grid-cols-2"
     >
       <FieldGroup>
         <Controller
@@ -83,26 +84,16 @@ export default function CreateJobForm({ projectId, onClose }: Props) {
         />
       </FieldGroup>
 
-      <FieldGroup>
-        <Controller
-          name="materialThicknessId"
-          control={form.control}
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="form-job-creation-material-thickness-id">
-                Material Thickness
-              </FieldLabel>
-              <Input
-                {...field}
-                id="form-job-creation-material-thickness-id"
-                aria-invalid={fieldState.invalid}
-                autoComplete="off"
-              />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
-      </FieldGroup>
+      <MaterialSelect
+        value={materialId}
+        onChange={(value) => {
+          setMaterialId(value);
+        }}
+      />
+
+      {materialId && (
+        <ThicknessSelect materialId={materialId} control={form.control} />
+      )}
 
       <FieldGroup>
         <Controller
@@ -228,7 +219,7 @@ export default function CreateJobForm({ projectId, onClose }: Props) {
         />
       </FieldGroup>
 
-      <FieldGroup className="sm:col-span-2">
+      <FieldGroup>
         <Controller
           name="customerName"
           control={form.control}

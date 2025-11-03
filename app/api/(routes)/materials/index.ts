@@ -20,7 +20,7 @@ const materialsRoutes = new Hono<{
   })
 
   .get(
-    "/:materialId/thickness",
+    "/:materialId/thicknesses",
     zValidator("param", GETMaterialsMaterialIdParamSchema),
     async (c) => {
       const params = c.req.valid("param");

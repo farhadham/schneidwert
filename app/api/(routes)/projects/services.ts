@@ -35,7 +35,12 @@ export const getProjectDetail = async (
 ) => {
   return db.query.projectTable.findFirst({
     with: {
-      jobs: true,
+      jobs: {
+        with: {
+          thickness: true,
+          material: true,
+        },
+      },
     },
     where: eq(projectTable.id, params.projectId),
   });
@@ -140,6 +145,8 @@ export const getJobDetail = async (
     where: eq(jobTable.id, params.jobId),
     with: {
       project: true,
+      material: true,
+      thickness: true,
     },
   });
 };

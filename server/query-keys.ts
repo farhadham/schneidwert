@@ -19,3 +19,8 @@ export const jobQueryKeys = {
   //   myEvents: () => [...eventQueryKeys.all, "me"] as const,
   //   myEventDetail: (id: string) => [...eventQueryKeys.myEvents(), id] as const,
 };
+
+export const materialQueryKeys = {
+  all: ["material"] as const,
+  detail: (id: string) => [...materialQueryKeys.all, id] as const,
+};
