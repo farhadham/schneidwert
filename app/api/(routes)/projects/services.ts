@@ -16,8 +16,10 @@ import { GLOBAL_DEFAULTS } from "../../(data)/constants";
 import { calculateJobPrice } from "./utils";
 import { ApiError } from "../../(lib)/api-error";
 
-export const getAllProjects = async () => {
-  return db.query.projectTable.findMany();
+export const getAllProjects = async (userId: string) => {
+  return db.query.projectTable.findMany({
+    where: eq(projectTable.createdBy, userId),
+  });
 };
 
 export const createProject = async (

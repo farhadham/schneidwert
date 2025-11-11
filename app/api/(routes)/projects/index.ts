@@ -21,7 +21,7 @@ const projectsRoutes = new Hono<{
 }>()
 
   .get("/", async (c) => {
-    const projects = await getAllProjects();
+    const projects = await getAllProjects(c.get("user").id);
 
     return c.json(
       {
